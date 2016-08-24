@@ -9,22 +9,582 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+```{r load libraries}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(purrr)
+library(stringr)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
+# 3.35 - faceting
 
-You can also embed plots, for example:
+```{r 3.35 faceting}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+mpg %>% 
+  ggplot(aes(year,cty)) + 
+  geom_point() + 
+  facet_wrap(~hwy)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = manufacturer, shape =  trans), show.legend = F) +
+  facet_grid(. ~ cyl)
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = ..prop.., group = 1))
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy), position = "jitter")
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_count()
+  
+geom_point(position = 'jitter')
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Interesting, the `..X..` stuff tells ggplot that its refering to a `stat_` transformation of the data, instead of the input
+
+There are three positions: `identity` (take the data literally, think bar plots), `fill` which essentially stacks things, `dodge` which places things next to each other, and `jitter` which moves things around. Manipulate outisde of aes per `geom_bar(aes(), position = dodge)`
+
+geom_point counts number of observations at a given location, for when you've got overlapping things
+
+`coord_quickmap` moves a polygon into the right projection for maps
+
+```{r}
+
+nz <- map_data("nz")
+
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black")
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black") +
+  coord_quickmap()
+
+```
+
+
+# 3.9.1
+
+```{r}
+
+mpg %>% 
+  ggplot(aes(manufacturer, fill = drv)) + 
+  geom_bar()
+
+
+mpg %>% 
+  ggplot(aes(manufacturer, fill = drv)) + 
+  geom_bar() + 
+  coord_polar() + 
+  labs(x = 'hello', title = 'weak')
+
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed()
+ 
+```
+
+Interesting, using `coord_fixed` holds the aspect ratio, so that its 1:1 (or whatever you want), so that for example an identity line is at a 45 degree angle. 
+
+# 8.2.2
+
+`\n` in a text tile specifies newline, so the thing below has top row x,y, next row 1,'a,b'
+
+
+```{r}
+read_delim("x,y\n1,'a,b'", quote = "'", delim = ',')
+
+```
+
+# 10.3
+
+```{r}
+library(nycflights13)
+
+planes %>% 
+  count(tailnum) 
+
+```
+ 
+ 
+# 10.3
+ 
+```{r regex}
+library(readr)
+ 
+ x <- c("apple", "banana", "pear")
+str_view(x, "an")
+ 
+str_view(x, '.a.')
+
+
+ 
+```
+
+OK! `.` tells it to match anything. so `.a.` says finds the two characters with an `a` in the middle,  `..a` finds anything with two characters then an a
+
+`\` is an escape, basically saying don't do something. So, `\.` means take `.` literally, instead of using it as a command. But `\` is a command itself, so `\\` tells R not to use it as a command
+
+Cool! So `^` says beginning, `$` says end, `.` says anything, `.*` says everything before/after thing
+
+```{r}
+str_view(c("abc", "a.c", "bef"), "a\\.c")
+
+
+x <- "a\\b"
+
+str_view(x,"\\\\")
+
+str_view(c("a\b"), "\\\\")
+```
+
+# 11.3.2.1
+
+```{r}
+
+# Match literal string "$^$"
+
+b = "ab$^$b"
+
+str_match(b, "\\$.*")
+
+str_match(b, ".*\\$")
+
+# 2 starts with y or ends with x
+ 
+a = stringr::words
+
+str_subset(a, pattern = '^y')
+
+str_subset(a, pattern = 'y$')
+
+str_length(a)
+
+# Is exactly 3 things long
+str_view(a, pattern = '^...$', match = T)
+
+str_subset(a, pattern = '^...$')
+
+# Is 7 or more chacaters long
+
+str_view(a, pattern = '^.......', match = T)
+
+str_subset(a, pattern = '^.......')
+
+
+```
+
+# 11.3.3
+
+starts with a vowel
+```{r}
+
+str_subset(a, "^[aeiou]")
+
+```
+
+starts with a vowel
+```{r}
+
+str_subset(a, "^[aeiou]")
+
+```
+
+only contain consonants... stumped on this one, error?
+```{r}
+#starts with a consonant...
+n = 'xcd'
+str_match(n, "^[^aeiou].*")
+
+#only has consonants...
+n = 'xcd'
+head(str_subset(a, "[^aeiou]"))
+
+```
+ 
+ End with ed but not with eed... not using regular expression technically the whole way through but whatever
+ 
+ 
+```{r}
+
+a[str_detect(a, pattern = 'ed$') & !str_detect(a, pattern = 'eed$')]
+
+```
+
+End with ing or ise 
+```{r}
+str_subset(a, pattern = 'ing$|ise$')
+```
+
+Empirically verify rule that i before e except after c
+
+```{r}
+
+str_subset(a, pattern = 'ie|cei')
+
+```
+
+Is q always followed by u?
+
+```{r}
+
+a[str_detect(a, pattern = 'q') & !str_detect(a, pattern = 'qu')]
+
+```
+
+Create a regular expression that will match telephone numbers as commonly written in your country.
+
+```{r}
+
+number = "(805)-284-6864"
+
+str_subset(number, '^\\(')
+
+```
+
+#11.3.5.1
+
+Interesting, so this is saying find things that go 1221
+```{r}
+
+j = "aabbnnz"
+
+str_view(fruit,"(.)(.)\\2\\1", match = T)
+
+str_view(fruit,"(..)\\1", match = T)
+
+
+```
+
+Start and end with the same character
+
+```{r}
+str_subset(c('aba','can'), pattern = "^(.).*\\1$")
+
+```
+Contain a repeated pair of letters (e.g. “church” contains “ch” repeated twice.)
+
+```{r}
+
+str_subset(fruit, pattern = "(..)\\1")
+
+```
+
+Contain one letter repeated in at least three places (e.g. “eleven” contains three “e”s.)
+
+```{r}
+str_subset('eleven',".*(.).*\\1.*\\1")
+```
+
+# 11.4 Tools
+
+## 11.4.2
+
+Find all words that start or end with a.
+
+```{r}
+
+str_subset(words, pattern = "^a|a$")
+
+```
+
+Find all words that start with a vowel and end with a consonant.
+
+```{r}
+
+words[str_detect(words,'^[aeiou]') & str_detect(words,'[^aeiou]$')]
+
+```
+Are there any words that contain at least one of each different vowel?
+
+```{r}
+ word_frame = data_frame(words = words)
+
+word_frame %>% 
+  mutate(num_unique_vowels = str_detect(words,'a') + str_detect(words,'e') + 
+           str_detect(words,'i') + str_detect(words,'o') + str_detect(words,'u'),
+         num_chars = str_count(words, pattern = '.'),
+         num_vowels = str_count(words, 'a|e|i|o|u'),
+         perc_vowels = num_vowels/num_chars) %>% 
+  arrange(desc(num_vowels))
+```
+
+# 11.4.3 Extract matches
+
+```{r}
+head(sentences)
+
+colours <- c("red", "orange", "yellow", "green", "blue", "purple")
+colour_match <- str_c(colours, collapse = "|")
+str_view_all(sentences, colour_match)
+
+
+has_colour <- str_subset(sentences, colour_match)
+matches <- str_extract(has_colour, colour_match)
+head(matches)
+
+```
+
+# 11.4.3.1
+
+In the previous example, you might have noticed that the regular expression matched “flickered”, which is not a colour. Modify the regex to fix the problem.
+
+
+`\b` is a boundary, so called in regex by `\\b` ; this allows you to say pick whole words around some thing
+
+
+```{r}
+
+huh = c('this is red','flickred')
+
+ new_reg <- paste('\\b(',colour_match,')\\b', sep = '')
+
+str_subset(sentences, pattern = new_reg)
+
+
+```
+
+From the Harvard sentences data, extract:
+
+The first word from each sentence.
+All words ending in ing.
+All plurals.
+
+Aha! these things are case sensitive, so "a" won't match with "A"
+
+```{r}
+head(str_extract(tolower(sentences), "\\b[a-z|']+\\b"))
+
+str_view(sentences, pattern = '\\b[a-z]+ing\\b', match = T)
+
+str_view(sentences, pattern = '\\b[a-z]+[^aeiou]s\\b', match = T) #grab all words that end with an s preceded by a consontant 
+
+```
+
+# 11.4.4
+
+This is interesting, this is something like any word `([^ ]+)`. Meaning, take things that aren't blank, of any length
+
+```{r}
+
+noun <- "(a|the) ([^ ]+)"
+
+has_noun <- sentences %>%
+  str_subset(noun) %>%
+  head(10)
+has_noun %>% 
+  str_extract(noun)
+
+tibble(sentence = sentences) %>% 
+  tidyr::extract(
+    sentence, c("article", "noun"), "(a|the) ([^ ]+)", 
+    remove = FALSE
+  )
+
+```
+
+## 11.4.4.1 Exercises
+
+Find all words that come after a “number” like “one”, “two”, “three” etc. Pull out both the number and the word.
+
+```{r}
+
+numbers <- str_c(c('one','two','three','four','five','six','seven','eight','nine','ten'), collapse = '|')
+
+
+head(str_match(sentences, pattern = paste('(',numbers,') ([^ ]+)', sep = '')))
+
+head(str_extract(sentences, pattern = paste('(',numbers,') ([^ ]+)', sep = '')))
+
+str_match(sentences, pattern = "(\\b[a-z]+)(')([a-z]+\\b)") #find and separate contractions
+
+```
+
+# 11.3.4 Replacing matches
+
+## 11.4.5.1 Exercises
+
+Replace all forward slashes in a string with backslashes.
+
+Implement a simple version of str_to_lower() using replace_all().
+
+Switch the first and last letters in words. Which of those strings are still words?
+
+```{r}
+
+thing <- c('This is /not ok')
+
+b = writeLines("\\")
+
+str_replace(thing, "/","\\")
+
+
+lower_rules = letters
+
+names(lower_rules) = LETTERS
+
+
+lower_fun <- function(wordies) {
+  lower_rules = letters
+  
+  names(lower_rules) = LETTERS
+  
+  return(str_replace_all(wordies, lower_rules))
+  
+}
+
+lower_fun('ApPle')
+
+
+rev_words <-  (str_replace(tolower(words), "(^[a-z])([a-z]+)([a-z]$)",'\\3\\2\\1')) #Switch the first and last letters in words. Which of those strings are still words?
+
+rev_words[rev_words %in% words]            
+            
+
+```
+
+# 11.4.6 Splitting
+
+```{r}
+
+sentences %>%
+  head(5) %>% 
+  str_split(" ")
+
+"a|b|c|d" %>% 
+  str_split("\\|") %>% 
+  .[[1]]
+
+
+sentences %>%
+  head(5) %>% 
+  str_split(" ", simplify = T)
+
+fields <- c("Name: Hadley", "Country: NZ", "Age: 35")
+fields %>% str_split(": ", n = 2, simplify = TRUE)
+```
+
+```{r}
+x <- "This is a sentence.  This is another sentence."
+str_view_all(x, boundary("word"))
+
+str_split(x, " ")[[1]]
+
+str_split(x, boundary("word"))[[1]]
+```
+
+
+
+```{python}
+
+a = {'New York': 'USA','Mexico City':'Mexico'}
+
+print(a['Mexico City'])
+
+```
+
+## 11.4.6.1 String splitting exercises
+
+Split up a string like "apples, pears, and bananas" into individual components.
+
+Why is it better to split up by boundary("word") than " "? **since it catches things like ","
+
+
+What does splitting with an empty string ("") do? Experiment, and then read the documentation.
+
+```{r}
+
+a <- c('apples, pears, and bananas')
+
+str_split(a, ' ')[[1]]
+
+str_split(a, boundary('word'))[[1]]
+
+str_split(a, '')[[1]]
+
+
+```
+
+## 14.5.1 Exercises
+
+How would you find all strings containing \ with regex() vs. with fixed()?
+
+What are the five most common words in sentences?
+
+```{r}
+
+test = c('Hell\\o','hello','te\\st')
+
+str_subset(test,'\\\\')
+
+str_detect(test, fixed("\\"))
+
+
+#most common words in sentances
+
+split_words <- str_split(sentences, boundary('word'), simplify = T) %>% 
+  as_data_frame() %>% 
+  gather('position','word') %>% 
+  mutate(word = tolower(word)) %>% 
+  count(word) %>% 
+  arrange(desc(n))
+```
+
+# Factors
+
+
+```{r}
+
+library(forcats)
+
+forcats::gss_cat
+
+ggplot(gss_cat, aes(race)) + 
+  geom_bar() + 
+  scale_x_discrete(drop = FALSE)
+
+
+relig <- gss_cat %>% 
+  group_by(relig) %>% 
+  summarise(
+    age = mean(age, na.rm = TRUE),
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  )
+
+ggplot(relig, aes(tvhours, relig)) + geom_point()
+ggplot(relig, aes(tvhours, fct_reorder(relig, tvhours))) + geom_point()
+```
+
+```{r}
+
+gss_cat$marital
+
+fct_relevel(gss_cat$marital, 'Divorced') #if you just want to pull a few things forward and leave the rest alone
+
+
+by_year <- gss_cat %>% 
+  group_by(year, marital) %>% 
+  count() %>% 
+  mutate(prop = n / sum(n))
+
+ggplot(by_year, aes(year, prop, colour = marital)) + 
+  geom_line()
+
+ggplot(by_year, aes(year, prop, colour = fct_reorder2(marital, year, prop))) + 
+  geom_line()
+
+```
+
