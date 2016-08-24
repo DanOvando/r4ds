@@ -6,8 +6,11 @@ rmd_files: [
 
   "explore.Rmd",
   "visualize.Rmd",
+  "workflow-basics.Rmd",
   "transform.Rmd",
+  "workflow-scripts.Rmd",
   "EDA.Rmd",
+  "workflow-projects.Rmd",
 
   "wrangle.Rmd",
   "tibble.Rmd",
@@ -30,8 +33,10 @@ rmd_files: [
   "model-many.Rmd",
 
   "communicate.Rmd",
-  "reproducible-research.Rmd",
+  "rmarkdown.Rmd",
   "communicate-plots.Rmd",
+  "rmarkdown-formats.Rmd",
+  "rmarkdown-workflow.Rmd",
 ]
 
 before_chapter_script: "_common.R"

@@ -93,14 +93,14 @@ sqrt(2) ^ 2 == 2
 1/49 * 49 == 1
 ```
 
-Computers use finite precision arithmetic (they obviously can't store an infinite number of digits!) so remember that every number you see is an approximation. Instead of relying on `==`, use use `dplyr::near()`:
+Computers use finite precision arithmetic (they obviously can't store an infinite number of digits!) so remember that every number you see is an approximation. Instead of relying on `==`, use `dplyr::near()`:
 
 ```{r}
 near(sqrt(2) ^ 2,  2)
 near(1 / 49 * 49, 1)
 ```
 
-(Remember that we use `::` to explicit about where a function lives. If dplyr is installed, `dplyr::near()` will always work. If you want to use the shorter `near()`, you need to make sure you have loaded dplyr with `library(dplyr)`.)
+(Remember that we use `::` to be explicit about where a function lives. If dplyr is installed, `dplyr::near()` will always work. If you want to use the shorter `near()`, you need to make sure you have loaded dplyr with `library(dplyr)`.)
 
 ### Logical operators
 
@@ -558,7 +558,8 @@ flights %>%
 In this case, where missing values represent cancelled flights, we could also tackle the problem by first removing the cancelled flights. We'll save this dataset so we can reuse in the next few examples.
 
 ```{r}
-not_cancelled <- filter(flights, !is.na(dep_delay), !is.na(arr_delay))
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
 
 not_cancelled %>% 
   group_by(year, month, day) %>% 
